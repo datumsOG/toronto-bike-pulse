@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="author" content="Blair Zasitko">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "CreativeWork", "name": "Pulse: Toronto Bike Share, hour by hour", "description": "Every Bike Share Toronto station filling and emptying through a typical week of 2025, from 7.3 million trips.", "author": {"@type": "Person", "name": "Blair Zasitko", "url": "https://www.linkedin.com/in/blair-zasitko/", "sameAs": ["https://www.linkedin.com/in/blair-zasitko/", "https://github.com/datumsOG", "https://rowanemberai.substack.com/"]}, "about": "Bike Share Toronto ridership, City of Toronto Open Data", "license": "https://opensource.org/licenses/MIT"}</script>
+<title>Pulse: Toronto Bike Share, hour by hour | Blair Zasitko</title>
+<meta name="description" content="Every Bike Share Toronto station, filling and emptying through a typical week. Four versions of the same map.">
+<meta property="og:title" content="Pulse: Toronto Bike Share, hour by hour">
+<meta property="og:description" content="Every station in the city, filling and emptying through a typical week.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="img/current.jpg">
+<link href="kit/ember-ui.css?v=2" rel="stylesheet">
+<style>
+  /* Index page. Controls, type and colour come from the kit; this only lays out. */
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; min-height: 100%; background: #0c0c0e; color: var(--e-ink);
+    font-family: var(--e-font); -webkit-font-smoothing: antialiased; }
+  main { max-width: 760px; margin: 0 auto;
+    padding: calc(env(safe-area-inset-top, 0px) + 40px) 20px calc(env(safe-area-inset-bottom, 0px) + 48px); }
+  h1 { margin: 0; font: 700 44px/1 var(--e-font); letter-spacing: -0.02em; }
+  .sub { margin: 8px 0 0; }
+  .lede { margin: 28px 0 10px; max-width: 60ch; font: 400 17px/1.6 var(--e-font); color: var(--e-ink); }
+  .note { margin: 0 0 28px; max-width: 60ch; }
+
+  .versions { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  a.version { display: block; color: inherit; text-decoration: none; padding: 10px 10px 16px;
+    border-radius: var(--e-r-pane); background: rgba(255,255,255,0.04);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.07); transition: background .15s; }
+  a.version:hover, a.version:focus-visible { background: rgba(255,255,255,0.08); }
+  a.version:focus-visible { outline: 2px solid var(--e-ink); outline-offset: 2px; }
+  a.version img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover;
+    border-radius: 14px; background: #000; }
+  a.version h2 { margin: 14px 6px 4px; font: 700 var(--e-t-title)/1.2 var(--e-font); }
+  a.version p { margin: 0 6px; }
+
+  footer { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--e-hair); max-width: 64ch; }
+  footer p { margin: 0 0 10px; }
+  footer a { color: var(--e-ink-2); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Pulse</h1>
+  <p class="sub e-body">Toronto Bike Share, hour by hour</p>
+  <p class="sub e-caption">Made by <a href="https://www.linkedin.com/in/blair-zasitko/" rel="author">Blair Zasitko</a></p>
+
+  <p class="lede">
+    Every sphere is a station. It grows with how fast its bike count is changing
+    right now: not how busy it is, but how far out of balance. Red stations are
+    emptying and green ones are filling. Watch downtown drain into the
+    neighbourhoods every evening, and fill back up every morning.
+  </p>
+  <p class="note e-body">
+    Four versions of exactly the same numbers. They differ in scale, or in the map underneath.
+  </p>
+
+  <div class="versions">
+    <a class="version" href="v/current/">
+      <img src="img/current.jpg" alt="Red and green spheres over a dark map of downtown Toronto" width="480" height="320">
+      <h2>Red and green</h2>
+      <p class="e-body">The original. Size is the rate, colour is the direction.</p>
+    </a>
+    <a class="version" href="v/bold/">
+      <img src="img/bold.jpg" alt="The same map with a wider range of sphere sizes" width="480" height="320">
+      <h2>Bigger swings</h2>
+      <p class="e-body">The size range is half again as wide, so growing and shrinking read from across a room.</p>
+    </a>
+    <a class="version" href="v/light/">
+      <img src="img/light.jpg" alt="The same map with lighter roads and water" width="480" height="320">
+      <h2>Lighter map</h2>
+      <p class="e-body">Roads, parks, labels and the lake lifted, with the black background kept.</p>
+    </a>
+    <a class="version" href="v/google/">
+      <img src="img/google.jpg" alt="The spheres over a pale street map with blue water" width="480" height="320">
+      <h2>Daylight map</h2>
+      <p class="e-body">The same spheres on a map coloured like the Google Maps default.</p>
+    </a>
+  </div>
+
+  <footer class="e-caption">
+    <p>A typical week of 2025: 7,316,957 trips at 1,054 stations, every trip of the year
+      folded into one Monday-to-Sunday week. The city has published 2026 only up to the end of
+      March so far; to see that winter week, add
+      <a href="v/current/?year=2026">?year=2026</a> to any version.</p>
+    <p>Data: <a href="https://open.toronto.ca/dataset/bike-share-toronto-ridership-data/">Bike Share Toronto ridership</a>,
+      City of Toronto Open Data. Map © <a href="https://openfreemap.org/">OpenFreeMap</a> and
+      <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.
+      Everything is precomputed, so nothing is queried while it plays.</p>
+  </footer>
+</main>
+</body>
+</html>
