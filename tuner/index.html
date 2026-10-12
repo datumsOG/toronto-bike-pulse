@@ -6,24 +6,26 @@
 <meta name="theme-color" content="#000000">
 <meta name="author" content="Blair Zasitko">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "CreativeWork", "name": "Pulse: Toronto Bike Share, hour by hour", "description": "Every Bike Share Toronto station filling and emptying through a typical week of 2025, from 7.3 million trips.", "author": {"@type": "Person", "name": "Blair Zasitko", "url": "https://www.linkedin.com/in/blair-zasitko/", "sameAs": ["https://www.linkedin.com/in/blair-zasitko/", "https://github.com/datumsOG", "https://rowanemberai.substack.com/"]}, "about": "Bike Share Toronto ridership, City of Toronto Open Data", "license": "https://opensource.org/licenses/MIT"}</script>
-<title>Pulse: Daylight map | Blair Zasitko</title>
-<meta name="description" content="The same, on a map coloured like the Google Maps default.">
+<title>Pulse: Glass tuner | Blair Zasitko</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="The red and green Pulse with live sliders for the glass panes. A workbench, not a version of the data.">
 <meta property="og:title" content="Pulse: a typical week of Toronto Bike Share">
 <meta property="og:description" content="Every Bike Share Toronto station, filling and emptying hour by hour through a typical week.">
+<link rel="canonical" href="https://blairz.ca/pulse/tuner/">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="../../kit/ember-ui.css?v=2" rel="stylesheet">
-<link href="../../css/style.css?v=18" rel="stylesheet">
+<link href="../kit/ember-ui.css?v=1.0.2" rel="stylesheet">
+<link href="../css/style.css?v=25" rel="stylesheet">
 </head>
 <body>
 <div id="map"></div>
 <div id="status">Starting</div>
 <div id="ui"></div>
 <div id="ver"></div>
-<script>window.PULSE_VARIANT = 'google';</script>
+<script>window.PULSE_VARIANT = 'tuner';</script>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="../../kit/ember-ui.js?v=2" defer></script>
-<script type="module" src="../../js/app.js?v=41"></script>
+<script src="../kit/ember-ui.js?v=1.0.2" defer></script>
+<script type="module" src="../js/app.js?v=58"></script>
 </body>
 </html>

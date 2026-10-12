@@ -24,11 +24,12 @@
 // makes the thresholds unreachable anyway).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { PulseLayer, hex, oklch } from './gl.js?v=30';
-import { mountShell, PLAY, PAUSE, SPEEDS } from './shell.js?v=31';
+import { PulseLayer, hex, oklch } from './gl.js?v=31';
+import { mountShell, PLAY, PAUSE, SPEEDS } from './shell.js?v=39';
 import { restyleMap, STYLE_URL } from './mapstyle.js?v=32';
+import { createGlassLayer } from '../kit/glass/host-maplibre.js?v=1.0.2';
 
-const APP_VERSION = 'v13';
+const APP_VERSION = 'v21';
 
 // Which year's typical week. 2025 by default again (Blair, 2026-09-22 evening: "switch
 // it back to 2025 average week, I didn't realize the 2026 data wasn't current"). 2026 so
@@ -40,7 +41,15 @@ const ROOT = new URL('../', import.meta.url);
 const DATA = new URL(YEAR === '2025' ? 'data/' : `data/${YEAR}/`, ROOT).href;
 
 // WEEK: 168 hourly frames, one typical week, stored at L2 (one node per station).
-const WEEK = { frames: 168, dur: 10000, level: 2 };
+// dur: ms for one week at 1×. 10000 -> 8000 on 2026-10-09 (Blair: "increase the speed of 1x by 25%").
+const WEEK = { frames: 168, dur: 8000, level: 2 };
+
+// Embedded as a live backdrop on another page (blairz.ca's home page sets
+// window.PULSE_EMBED before loading this module). The host page supplies #map and hidden
+// #ui, #status and #ver; the engine runs unchanged, but the map takes no input, shows no
+// attribution control (the host page credits the map in its own text), and the frame
+// loop stops while the host says the map is off screen (window.__pulse.setPlaying).
+const EMBED = window.PULSE_EMBED || null;
 const DOW = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 
 // ─────────────────────────────────────────────────────────── variants
@@ -84,6 +93,17 @@ const VARIANTS = {
     size: 'magnitude', colour: 'sign', map: 'google',
     palette: { out: '#ea2a12', in: '#1f9e0a', mid: '#7b7b82' },
     tune: { glow: 0 },
+  },
+  // 5. Not a version of the data: the bench for the glass. Blair, 2026-10-09, after the
+  //    static ~/ui-lab page: "it's just not the same as in the app - the colors, the
+  //    motion... Could we possibly make a version of pulse like the top version but with
+  //    the glass tuning?" Identical to `current`, plus js/tuner.js: sliders that drive
+  //    glassLayer.params live. Unlisted on the hub; reached at /v/tuner/.
+  tuner: {
+    name: 'Glass tuner',
+    size: 'magnitude', colour: 'sign', map: 'dark',
+    palette: { out: '#ff2800', in: '#28b80f', mid: '#7b7b82' },
+    tuner: true,
   },
 };
 
@@ -293,6 +313,7 @@ function resetSmoothing(n) {
   smT = null;
 }
 
+let nodeOrderBearing = null, nodeOrderN = 0;
 function nodeGeometry(f0, f1, frac) {
   const n = state.n, buf = state.flow, merc = state.merc;
   if (!nodeBuf || nodeBuf.length !== n * 5) nodeBuf = new Float32Array(n * 5);
@@ -310,11 +331,16 @@ function nodeGeometry(f0, f1, frac) {
   // so bearing 0 (north at the top) makes up = (0, -1).
   const B = (map.getBearing() * Math.PI) / 180;
   const ux = Math.sin(B), uy = -Math.cos(B);
-  for (let i = 0; i < n; i++) {
-    nodeOrder[i] = i;
-    nodeDepth[i] = merc[i * 3] * ux + merc[i * 3 + 1] * uy;
+  // The order depends only on the bearing and the station list, so it is worked out again
+  // only when one of them changes, not ~900 comparisons-with-a-callback every frame.
+  if (B !== nodeOrderBearing || nodeOrderN !== n) {
+    for (let i = 0; i < n; i++) {
+      nodeOrder[i] = i;
+      nodeDepth[i] = merc[i * 3] * ux + merc[i * 3 + 1] * uy;
+    }
+    nodeOrder.sort((a, b) => nodeDepth[b] - nodeDepth[a]);
+    nodeOrderBearing = B; nodeOrderN = n;
   }
-  nodeOrder.sort((a, b) => nodeDepth[b] - nodeDepth[a]);
   const ord = nodeOrder;
 
   // A scrub or a reload is a TELEPORT, not motion. Easing across it would smear
@@ -396,12 +422,11 @@ function nodeGeometry(f0, f1, frac) {
 
 // ─────────────────────────────────────────────────────────── time & labels
 
+// The day only, spelled out (Blair, 2026-10-09: "Wednesday not Wed", and no hour,
+// because the globe already tells the time).
 function label(t) {
-  const f = Math.floor(t);
-  const d = Math.floor(f / 24) % 7, h = f % 24;
-  const ampm = h < 12 ? 'am' : 'pm';
-  const hh = h % 12 === 0 ? 12 : h % 12;
-  return { big: `${DOW[d].slice(0, 3)} ${hh} ${ampm}`, small: `A typical week in ${YEAR}` };
+  const d = Math.floor(Math.floor(t) / 24) % 7;
+  return { big: DOW[d], small: `${YEAR} typical week` };
 }
 
 // ─────────────────────────────────────────────────────────── globe clock
@@ -628,7 +653,11 @@ function captureStep(dh, n = 1) {
   });
 }
 
+let looping = false;
 function frameLoop(now) {
+  // Embedded and paused means off screen: stop drawing altogether, not just the clock.
+  if (EMBED && !state.playing) { looping = false; return; }
+  looping = true;
   const dt = Math.min(100, now - last);
   last = now;
 
@@ -646,7 +675,8 @@ function frameLoop(now) {
 
   const L = label(state.t);
   const hBig = document.getElementById('h-big');
-  if (hBig) { hBig.textContent = L.big; document.getElementById('h-small').textContent = L.small; }
+  // Only on change: the text changes once a day of the week, not once a frame.
+  if (hBig && hBig.textContent !== L.big) { hBig.textContent = L.big; document.getElementById('h-small').textContent = L.small; }
   if (globeCanvas) drawGlobe(globeCanvas, state.t % 24);
 
   map.triggerRepaint();
@@ -694,7 +724,16 @@ window.addEventListener('unhandledrejection', (e) => {
 });
 window.addEventListener('error', (e) => console.log('PULSE-ERR', e.message));
 
+// The glass is the UI kit's (app/kit/, pinned release 1.0.2; never edited here).
+// `backdrop` is how bright the map under the panes is: it picks white or black ink on
+// stained glass, so the daylight map says so.
+const glassLayer = createGlassLayer({ backdrop: VARIANT.map === 'google' ? 0.8 : 0.05 });
+
 mountShell(document.getElementById('ui'), VARIANT);
+// ember-ui.js ran before this module wrote the furniture, so it has not seen these
+// controls: init() wires the slider and marks the buttons inside a glass-skin pane.
+if (window.EmberUI) window.EmberUI.init(document.getElementById('ui'));
+if (VARIANT.tuner) import('./tuner.js?v=2').then((m) => m.mountTuner(glassLayer));
 const globeCanvas = document.getElementById('globe');
 
 async function boot() {
@@ -705,23 +744,57 @@ async function boot() {
     state.manifest = await (await fetch(DATA + 'manifest.json')).json();
 
     const cam = VARIANT.camera || {};
+    // Where the camera settles. 11.9 -> 11.4 on 2026-10-10 (Blair: "make the default zoom
+    // further out").
+    const HOME = {
+      center: cam.center || [-79.3915, 43.6555],
+      zoom: cam.zoom || 11.4,
+      pitch: cam.pitch || 52,
+      bearing: cam.bearing === undefined ? -17 : cam.bearing,
+    };
+    // The opening move, as in the apartments map: the app opens a little wide, flat and
+    // turned, behind the loading screen, then eases to HOME once everything is drawn. About
+    // 20% closer, 15 degrees of turn, 10 of tilt: enough to say that all three move. Any
+    // touch stops it. Not in an embed, a capture, or for anyone who asked for less motion.
+    const INTRO = !EMBED && !CAPTURE && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const OPEN = INTRO ? { ...HOME, zoom: HOME.zoom - 0.26, pitch: HOME.pitch - 10, bearing: HOME.bearing - 15 } : HOME;
     map = new maplibregl.Map({
       container: 'map',
       style: STYLE_URL[VARIANT.map] || STYLE_URL.dark,
-      center: cam.center || [-79.3915, 43.6555],
-      zoom: cam.zoom || 11.9,
-      pitch: cam.pitch || 52,
-      bearing: cam.bearing === undefined ? -17 : cam.bearing,
+      ...OPEN,
       minZoom: 9.5,
       maxZoom: 17,
       // Reel: the text owns the top ~half of the frame and TikTok's caption the bottom
       // fifth, so the camera centres the city in the band between them. Pitch comes
       // down so the core is not foreshortened into a sliver in a narrow frame.
       ...(REEL ? { pitch: 38, zoom: 11.55, center: [-79.395, 43.662] } : {}),
-      attributionControl: { compact: true, customAttribution: 'Pulse by <a href="https://www.linkedin.com/in/blair-zasitko/" rel="author">Blair Zasitko</a>' },
+      // Smooth edges, and no more than 2 device px per CSS px: on a 3x phone that is under
+      // half the pixels per frame for the map, the spheres' glow and the glass's full-screen
+      // pass, which pays for the multisampling. Same setting as the Sun app (since
+      // 2026-09-15). ?aa=0 and ?dpr=3 to compare. A host's EMBED.map overrides both.
+      antialias: !/[?&]aa=0\b/.test(location.search),
+      pixelRatio: Math.min(devicePixelRatio || 1, +((/[?&]dpr=([\d.]+)/.exec(location.search) || [])[1]) || 2),
+      attributionControl: EMBED ? false : { compact: true, customAttribution: 'Pulse by <a href="https://www.linkedin.com/in/blair-zasitko/" rel="author">Blair Zasitko</a>' },
+      // EMBED.map: any MapLibre constructor option the host wants (antialias, pixelRatio).
+      ...(EMBED ? { interactive: false, ...(EMBED.camera || {}), ...(EMBED.map || {}) } : {}),
     });
 
     if (REEL) map.setPadding({ top: 400, bottom: 150, left: 0, right: 0 });   // not a constructor option
+    // Embed: the host may say WHERE on the screen the map's centre should sit
+    // (EMBED.target() -> {x, y} in CSS px). MapLibre centres the map in whatever is left
+    // after padding, so the padding is chosen to make that leftover box's middle the point.
+    if (EMBED && typeof EMBED.target === 'function') {
+      const place = () => {
+        const p = EMBED.target(), c = map.getContainer();
+        if (!p) return;
+        const W = c.clientWidth, H = c.clientHeight;
+        const x = Math.max(0, Math.min(W, p.x)), y = Math.max(0, Math.min(H, p.y));
+        map.setPadding({ left: Math.max(0, 2 * x - W), right: Math.max(0, W - 2 * x),
+                         top: Math.max(0, 2 * y - H), bottom: Math.max(0, H - 2 * y) });
+      };
+      place();
+      map.on('resize', place);
+    }
 
     // MapLibre's attribution control mounts EXPANDED and only collapses once the
     // user taps the (i) — a strip of web-page text along the bottom of what is
@@ -767,16 +840,35 @@ async function boot() {
     }
     layer.depth = !!VARIANT.depth;
     map.addLayer(layer);
+    // Embed: a host page that moves its own glass (the home page's pane) gets a call inside
+    // the map's frame, just before the glass layer measures, so the pane and its lens are
+    // placed in the same frame whatever order the browser runs events in. Draws nothing.
+    if (EMBED && typeof EMBED.frame === 'function') {
+      map.addLayer({ id: 'embed-frame', type: 'custom', renderingMode: '2d', render() { EMBED.frame(); } });
+    }
+    // Glass LAST: it copies the frame everything above just drew and refracts it
+    // through every [data-glass] pane. The layer comes from the UI kit.
+    try { map.addLayer(glassLayer); } catch (e) { console.log('PULSE: glass unavailable — ' + e.message); }
 
     await loadFlow();
     console.log('PULSE step: week in, ' + state.n + ' stations');
 
+    // Load, then show (Blair, 2026-10-10: no half-loaded app on screen with things popping
+    // into existence). The loading screen stays until the basemap tiles for the opening view
+    // are in and one frame has been drawn with them. Never waits past 6 seconds.
+    await new Promise((res) => {
+      const t0 = performance.now();
+      const check = () => {
+        if (map.areTilesLoaded() || performance.now() - t0 > 6000) { map.once('render', () => requestAnimationFrame(res)); map.triggerRepaint(); }
+        else setTimeout(check, 80);
+      };
+      check();
+    });
+
     status.classList.add('gone');
     document.getElementById('ui').classList.add('ready');
-    // No "A · B · C" strings: two plain lines.
-    const m = state.manifest, span = spanText(m);
-    document.getElementById('stats').innerHTML =
-      `${m.trips.toLocaleString()} trips at ${state.n.toLocaleString()} stations<br>${span}`;
+    if (INTRO) setTimeout(() => map.easeTo({ ...HOME, duration: 2600, essential: true,
+      easing: (t) => (t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2) }), 700);
 
     // ?capture=1: no free-running loop. build/render_video.mjs drives time through
     // window.__pulse.step so every video frame gets exactly the smoothing updates live
@@ -786,7 +878,51 @@ async function boot() {
       if (REEL) { document.body.classList.add('reel'); buildReel(); updateReel(state.t); }
       window.__pulse = { step: captureStep, setT: (t) => { state.t = t; }, ready: true };
     }
-    else requestAnimationFrame(frameLoop);
+    else {
+      requestAnimationFrame(frameLoop);
+      if (EMBED) {
+        // The camera at offset 0, taken at the first setOffset() call so a host may frame
+        // the view (centre, zoom) first. setOffset() pans from here, so the result depends
+        // only on the offset, never on the order of calls.
+        let base = null, step = null;   // step: the ground per screen px at the centre, taken with base
+        window.__pulse = {
+          ready: true,
+          map,   // the MapLibre map, for a host that frames its own view
+          layerId: layer.id,   // the spheres, for a host that adds its own layer under them
+          setPlaying(on) {
+            state.playing = !!on;
+            if (on && !looping) { looping = true; last = performance.now(); requestAnimationFrame(frameLoop); }
+          },
+          // Move the map straight up the screen by y CSS px, as if it were part of the page,
+          // while the canvas stays put. Call it from a scroll handler: that runs before this
+          // frame's draw, so the map moves in the frame the page scrolled.
+          // The camera is rotated (bearing -17) and tilted (pitch 52), so the move is worked
+          // out on screen, not on the compass, and at a constant ground speed: the ground one
+          // screen pixel covers at the centre, straight down the screen, times y. Content at
+          // the centre then moves exactly 1:1 with the page for the whole swipe; above the
+          // centre it moves slower and below it faster, which is the tilt, but nothing slows
+          // down as the swipe goes on. (Two earlier versions were wrong, both seen by Blair on
+          // 2026-10-10: moving due south drifted the map up and to the right; bringing "the
+          // point y px below the centre" to the centre slowed the map the farther he swiped,
+          // because rows lower on the screen are nearer and cover less ground.)
+          offset: 0,
+          setOffset(y) {
+            if (y === this.offset) return;
+            if (!base) {
+              base = maplibregl.MercatorCoordinate.fromLngLat(map.getCenter());
+              const c = map.project(map.getCenter());
+              const up = maplibregl.MercatorCoordinate.fromLngLat(map.unproject([c.x, c.y - 1]));
+              const down = maplibregl.MercatorCoordinate.fromLngLat(map.unproject([c.x, c.y + 1]));
+              step = { x: (down.x - up.x) / 2, y: (down.y - up.y) / 2 };
+            }
+            this.offset = y;
+            map.jumpTo({ center: new maplibregl.MercatorCoordinate(base.x + y * step.x, base.y + y * step.y).toLngLat() });
+          },
+          // What the glass drew in its last frame: { ok, panes, buttons, dropped, error }.
+          glass: () => glassLayer.readout(),
+        };
+      }
+    }
   } catch (e) {
     status.textContent = 'failed: ' + e.message;
     console.error(e);
@@ -801,16 +937,6 @@ document.getElementById('play').addEventListener('click', (e) => {
   e.currentTarget.innerHTML = state.playing ? PAUSE : PLAY;
   e.currentTarget.setAttribute('aria-label', state.playing ? 'Pause' : 'Play');
 });
-
-// "January to March 2026", or "All of 2025". Read from the manifest, never assumed.
-function spanText(m) {
-  const MON = ['January','February','March','April','May','June','July','August',
-               'September','October','November','December'];
-  if (!m.first_day || !m.last_day) return `All of ${YEAR}`;
-  const a = +m.first_day.slice(5, 7) - 1, b = +m.last_day.slice(5, 7) - 1;
-  if (a === 0 && b === 11) return `All of ${YEAR}`;
-  return `${MON[a]} to ${MON[b]} ${YEAR}`;
-}
 
 // Logarithmic speed. The slider value IS the exponent, so 0 is 1x, -2 is 0.25x
 // and +2 is 4x — and the middle of the travel is the middle of the perceived

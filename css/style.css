@@ -1,5 +1,5 @@
-/* Pulse — layout on top of the standard kit (/kit/ember-ui.css, vendored from
-   (internal path)). Controls, type and colour come from the kit; this file
+/* Pulse — layout on top of the standard kit (kit/ember-ui.css, pinned release 1.0.0
+   from (internal path) never edit the copy in app/kit). Controls, type and colour come from the kit; this file
    only places things.
 
    v12, 2026-09-22. What changed from v11 and why (research and audit:
@@ -27,9 +27,36 @@ html, body {
 }
 #map { position: absolute; inset: 0; }
 
-/* Over the pale daylight map the standard smoke pane washes to grey and the captions
-   lose contrast, so the panes carry more ink there. */
-body.map-google { --e-pane: rgba(18, 18, 22, 0.80); }
+/* Glass panes (v14, Blair: "glass cards like in the sun app"). the kit's glass layer draws real
+   refraction under every [data-glass] pane and sets body.lg once its shader runs; the
+   kit then gives the pane only a light smoke tint. Until then, or on a phone that
+   cannot run the shader, the pane stays ordinary CSS glass so it is never bare. */
+body:not(.lg) .e-pane[data-glass] {
+  background: var(--e-pane);
+  -webkit-backdrop-filter: var(--e-pane-blur); backdrop-filter: var(--e-pane-blur);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* The daylight map (2026-10-09, Blair: the dark tint read as "very visibly gray"
+   on the white map; "make that glass clear with just a very slight blur"). So the
+   glass carries no tint here at all: the shader's refraction and its light frost are
+   the whole pane. Text flips to black, the one raised control (play) flips to black
+   with a white icon, and the wells are a faint shade instead of a dark one. */
+body.map-google {
+  --e-ink: #000; --e-ink-2: #000; --e-ink-3: #000;
+  --e-on-ink: #fff;
+  --e-well: rgba(0, 0, 0, 0.06);
+  --e-well-deep: rgba(0, 0, 0, 0.12);
+  --e-lip-dark: rgba(0, 0, 0, 0.16);
+  --e-lip-light: rgba(255, 255, 255, 0.7);
+  --e-pane: rgba(255, 255, 255, 0.35);
+  --e-pane-blur: blur(4px);
+}
+body.map-google.lg .e-pane[data-glass] {
+  background: transparent;
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+body.map-google .e-btn--primary:active { background: #222; }
 
 /* MapLibre's own chrome, kept quiet and under the dock */
 .maplibregl-ctrl-attrib { background: rgba(0,0,0,0.42) !important; font-size: 8px !important; }
@@ -46,23 +73,21 @@ body.map-google { --e-pane: rgba(18, 18, 22, 0.80); }
 #ui { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.8s ease 0.15s; }
 #ui.ready { opacity: 1; }
 
-/* ── header pane: title, the clock the globe tells, and the numbers ───────── */
+/* ── header: one glass card. The globe is the clock, the day is the title. ────
+   v15 (2026-10-09): the separate day card and the "Pulse" title are gone. */
 #head {
   position: absolute; top: calc(var(--safe-top) + 12px); left: 12px;
   max-width: calc(100% - 24px);
-  padding: 12px 14px 12px 12px;
+  padding: 16px 18px 16px 16px;   /* kit rule: nothing within 16 px of a pane's edge */
+  display: grid; grid-template-columns: 64px auto; column-gap: 14px; align-items: center;
   pointer-events: auto;
 }
-#head .brand { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-#head .brand .e-title { margin: 0; }
-#clockrow { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
-#globe { width: 48px; height: 48px; flex: 0 0 48px; }
-#h-big { font-size: 28px; }
-#h-small { margin-top: 3px; }
-#stats { margin-top: 8px; }
-#byline { display: block; margin-top: 4px; color: var(--e-ink-2); text-decoration: none; }
-#byline:hover { text-decoration: underline; }
-#back { margin-top: 10px; min-height: 34px; padding: 0 12px; font-size: 13px; text-decoration: none; }
+#globe { grid-row: 1 / 3; width: 64px; height: 64px; }
+#h-big { margin: 0; min-width: 7.2em; white-space: nowrap; }  /* fits "Wednesday": no resize as the week turns */
+#where { margin-top: 2px; }
+
+/* Home-screen mode only (shell.js): the way back to the page that linked here. */
+#back { position: absolute; top: calc(var(--safe-top) + 12px); right: 12px; pointer-events: auto; }
 
 /* ── dock ─────────────────────────────────────────────────────────────────── */
 #dock {
@@ -82,13 +107,13 @@ body.map-google { --e-pane: rgba(18, 18, 22, 0.80); }
   font-size: 4pt; color: rgba(255,255,255,0.30); pointer-events: none; z-index: 50;
 }
 
-@media (max-width: 380px) {
-  #h-big { font-size: 24px; }
-  #globe { width: 40px; height: 40px; flex-basis: 40px; }
+@media (max-width: 360px) {
+  #head { grid-template-columns: 52px auto; column-gap: 12px; }
+  #globe { width: 52px; height: 52px; }
 }
 
 /* Video capture (?capture=1): hide what only makes sense to a finger. */
-body.capture #back, body.capture #ver { display: none; }
+body.capture #ver { display: none; }
 
 /* ?reel=1 — the vertical social cut. 432 x 768 CSS px at DPR 2.5 = 1080 x 1920.
    Top ~11% and bottom ~22% belong to the app's own furniture; so does the right edge.
@@ -99,7 +124,7 @@ body.reel #ui, body.reel #ver, body.reel #status, body.reel .maplibregl-ctrl { d
   background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%);
   padding-bottom: 60px; }
 #reel .r-hook { font: 700 26px/1.12 var(--e-font); letter-spacing: -0.01em; }
-#reel .r-sub { margin-top: 6px; font: 400 17px/1.3 var(--e-font); color: rgba(255,255,255,0.82); }
+#reel .r-sub { margin-top: 6px; font: 400 17px/1.3 var(--e-font); color: #fff; }
 #reel .r-clock { margin-top: 14px; font: 700 40px/1 var(--e-font); font-variant-numeric: tabular-nums; }
 #reel .r-week { display: flex; gap: 5px; margin-top: 10px; max-width: 300px; }
 #reel .r-week span { position: relative; flex: 1; height: 22px; border-radius: 5px; overflow: hidden;
@@ -111,4 +136,4 @@ body.reel #ui, body.reel #ver, body.reel #status, body.reel .maplibregl-ctrl { d
 #reel .r-week + .r-key { margin-top: 16px; }
 #reel .r-key i { flex: none; width: 15px; height: 15px; border-radius: 50%; }
 #reel #r-note { margin-top: 14px; min-height: 26px; font: 700 21px/1.2 var(--e-font); }
-#reel .r-credit { margin-top: 10px; font: 400 10px/1.3 var(--e-font); color: rgba(255,255,255,0.5); }
+#reel .r-credit { margin-top: 10px; font: 400 10px/1.3 var(--e-font); color: #fff; }

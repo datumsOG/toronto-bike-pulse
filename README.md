@@ -1,8 +1,8 @@
 # Pulse: Toronto Bike Share, hour by hour
 
-By [Blair Zasitko](https://www.linkedin.com/in/blair-zasitko/)
+By [Blair Zasitko](https://blairz.ca)
 
-**See it live: https://datumsog.github.io/toronto-bike-pulse/**
+**See it live: https://blairz.ca/pulse/**
 
 ![Pulse at 9 am on a Tuesday: downtown stations green and filling, the rest of the city red and emptying](img/current.jpg)
 
@@ -25,6 +25,9 @@ code, so any static host will serve it.
 - `?reel=1` is the vertical version made for short videos. `tools/render_video.mjs` renders
   it frame by frame to a 1080 × 1920 MP4.
 
+The controls are from [glass-ui-kit](https://github.com/datumsOG/glass-ui-kit): real refractive glass, drawn by
+one shader over the finished map.
+
 ## How it was made
 
 I designed Pulse and directed its construction with AI coding agents (Claude), and checked
@@ -38,6 +41,5 @@ the morning, was checked against the numbers before it went in.
   [Open Government Licence – Toronto](https://open.toronto.ca/open-data-license/).
 - Station locations: the Bike Share Toronto public GBFS feed.
 - Map: [OpenFreeMap](https://openfreemap.org/), © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors.
-- Typeface: Atkinson Hyperlegible Next, SIL Open Font License 1.1 (`kit/fonts/OFL.txt`).
 
 The code is MIT-licensed (see `LICENSE`). The data stays under its own licence.

@@ -1,3 +1,40 @@
+/* GENERATED from src/tokens.json (kit 1.0.2) by tools/build.mjs. Do not edit: change tokens.json and rebuild. */
+:root {
+  --e-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --e-t-caption: 12.5px;
+  --e-t-label: 14px;
+  --e-t-body: 16px;
+  --e-t-title: 21px;
+  --e-t-display: 36px;
+  --e-ink: #fff;
+  --e-ink-2: #fff;
+  --e-ink-3: #fff;
+  --e-on-ink: #17161a;
+  --e-pane: rgba(22, 22, 26, 0.55);
+  --e-pane-blur: blur(18px) saturate(1.25);
+  --e-pane-tint: rgba(8, 8, 10, 0.26);
+  --e-well: rgba(0, 0, 0, 0.30);
+  --e-well-deep: rgba(0, 0, 0, 0.42);
+  --e-lip-dark: rgba(0, 0, 0, 0.55);
+  --e-lip-light: rgba(255, 255, 255, 0.11);
+  --e-hair: rgba(255, 255, 255, 0.10);
+  --e-fill: #35c46a;
+  --e-drain: #ec4a3f;
+  --e-r-pane: 22px;
+  --e-r-ctl: 12px;
+  --e-hit: 44px;
+  --e-track: 6px;
+  --e-thumb: 24px;
+  --e-tint-ruby: #f70001;
+  --e-tint-amber: #ebb900;
+  --e-tint-citrine: #fff912;
+  --e-tint-emerald: #00f700;
+  --e-tint-teal: #0aa3a3;
+  --e-tint-sapphire: #1f4fd8;
+  --e-tint-amethyst: #7a3fd1;
+  --e-tint-rose: #e0457b;
+}
+
 /* ember-ui.css — the standard controls for Blair's apps (Pulse, Sun, the assistant).
  *
  * Written 2026-09-22. Why each choice was made, and the research behind it:
@@ -15,55 +52,21 @@
  *   - no "A · B · C" meta strings: use layout (a line break, a second column);
  *   - colour is data. Red and green mean emptying and filling, nothing else.
  *
- * Self-hosted font (no Google request at page load: rule 21, and it works offline).
- * Atkinson Hyperlegible Next, Braille Institute, SIL Open Font License. Chosen because
- * every one of these apps sets small text over a busy night photo or a map, which is
- * the exact problem the face was drawn to solve: letterforms that cannot be confused.
+ *
+ * Type (revised 2026-10-09, Blair: "eliminate AI tells (0 with a slash is one of the
+ * most obvious)"). The kit shipped Atkinson Hyperlegible Next, whose zero is slashed:
+ * in a numbers-heavy UI that one glyph reads as generated. It now uses the platform's
+ * own face (SF Pro on iPhone, Roboto on Android, Segoe UI on Windows): no download, no
+ * third-party request (rule 21), and nothing a reader associates with templated UI.
+ *
+ * Ink (same day, Blair: "No light beige or off white text, if you need light text just
+ * make it white"). All three ink steps are pure white; hierarchy comes from size and
+ * weight, never from a warmer or greyer white.
  */
 
-@font-face { font-family: "Atkinson Hyperlegible Next"; font-style: normal; font-weight: 200 800; font-display: swap;
-  src: url("fonts/ahn-latin.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Atkinson Hyperlegible Next"; font-style: normal; font-weight: 200 800; font-display: swap;
-  src: url("fonts/ahn-latin-ext.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: "Atkinson Hyperlegible Next"; font-style: italic; font-weight: 200 800; font-display: swap;
-  src: url("fonts/ahn-latin-italic.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-
-:root {
-  /* type */
-  --e-font: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --e-t-caption: 12.5px;   /* units, legends, footnotes */
-  --e-t-label: 14px;       /* control labels */
-  --e-t-body: 16px;
-  --e-t-title: 21px;
-  --e-t-display: 36px;     /* the one big number on a screen */
-
-  /* ink: warm paper white, three steps, never pure #fff */
-  --e-ink: #f2efe8;
-  --e-ink-2: #c7c2b8;
-  --e-ink-3: #99948a;
-  --e-on-ink: #17161a;     /* text on the raised (ink-filled) control */
-
-  /* surfaces */
-  --e-pane: rgba(22, 22, 26, 0.55);          /* CSS-glass fallback fill */
-  --e-pane-blur: blur(18px) saturate(1.25);
-  --e-well: rgba(0, 0, 0, 0.30);             /* an inset control's floor */
-  --e-well-deep: rgba(0, 0, 0, 0.42);        /* pressed */
-  --e-lip-dark: rgba(0, 0, 0, 0.55);         /* top inner edge of a well: in shadow */
-  --e-lip-light: rgba(255, 255, 255, 0.11);  /* bottom inner edge: catches the light */
-  --e-hair: rgba(255, 255, 255, 0.10);
-
-  /* data semantics — used for meaning only */
-  --e-fill: #35c46a;       /* filling / go */
-  --e-drain: #ec4a3f;      /* draining / stop */
-
-  /* geometry: radius encodes nesting (pane > control), never one radius for all */
-  --e-r-pane: 22px;
-  --e-r-ctl: 12px;
-  --e-hit: 44px;           /* minimum touch target (Apple HIG) */
-}
+/* Every value below comes from a CSS variable defined in tokens.css, which is generated
+   from (internal path) There are no literals to override here: to
+   change a size, a colour or a font, change the token. */
 
 /* ------------------------------------------------------------------ pane */
 .e-pane {
@@ -79,7 +82,7 @@
 /* Where the WebGL shader draws the glass (data-glass), the element adds only a light
    smoke tint: enough that a caption survives a bright tower refracting behind it,
    little enough that the refraction still reads as glass. */
-.e-pane[data-glass] { background: rgba(8, 8, 10, 0.24); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+.e-pane[data-glass] { background: var(--e-pane-tint); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
 
 /* ------------------------------------------------------------------ type */
 .e-display { font: 700 var(--e-t-display)/1.05 var(--e-font); letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
@@ -111,7 +114,7 @@
   background: var(--e-ink);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 1px 1px rgba(0, 0, 0, 0.35), 0 4px 10px rgba(0, 0, 0, 0.30);
 }
-.e-btn--primary:active { background: #dcd8cf; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25), 0 1px 1px rgba(0, 0, 0, 0.3); }
+.e-btn--primary:active { background: #e6e6e6; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25), 0 1px 1px rgba(0, 0, 0, 0.3); }
 
 .e-btn--icon { width: var(--e-hit); height: var(--e-hit); min-height: 0; padding: 0; border-radius: 50%; }
 .e-btn--icon svg { width: 20px; height: 20px; }
@@ -134,7 +137,7 @@
 }
 .e-seg button[aria-pressed="true"] {
   color: var(--e-ink);
-  background: rgba(242, 239, 232, 0.16);
+  background: rgba(255, 255, 255, 0.16);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
@@ -163,23 +166,23 @@
   --pct: 50%;
 }
 .e-range::-webkit-slider-runnable-track {
-  height: 6px; border-radius: 3px;
+  height: var(--e-track); border-radius: calc(var(--e-track) / 2);
   background: linear-gradient(90deg, var(--e-ink-2) 0 var(--pct), var(--e-well) var(--pct) 100%);
   box-shadow: inset 0 1px 2px var(--e-lip-dark), 0 1px 0 var(--e-lip-light);
 }
 .e-range::-moz-range-track {
-  height: 6px; border-radius: 3px; background: var(--e-well);
+  height: var(--e-track); border-radius: calc(var(--e-track) / 2); background: var(--e-well);
   box-shadow: inset 0 1px 2px var(--e-lip-dark), 0 1px 0 var(--e-lip-light);
 }
-.e-range::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--e-ink-2); }
+.e-range::-moz-range-progress { height: var(--e-track); border-radius: calc(var(--e-track) / 2); background: var(--e-ink-2); }
 .e-range::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;
-  width: 24px; height: 24px; margin-top: -9px; border-radius: 50%; border: 0;
+  width: var(--e-thumb); height: var(--e-thumb); margin-top: calc((var(--e-track) - var(--e-thumb)) / 2); border-radius: 50%; border: 0;
   background: var(--e-ink);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 2px rgba(0, 0, 0, 0.5), 0 3px 8px rgba(0, 0, 0, 0.3);
 }
 .e-range::-moz-range-thumb {
-  width: 24px; height: 24px; border-radius: 50%; border: 0; background: var(--e-ink);
+  width: var(--e-thumb); height: var(--e-thumb); border-radius: 50%; border: 0; background: var(--e-ink);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 3px 8px rgba(0, 0, 0, 0.3);
 }
 .e-range:active::-webkit-slider-thumb { transform: scale(1.08); }
@@ -195,12 +198,12 @@
 .e-toggle { position: relative; display: inline-flex; align-items: center; gap: 12px; cursor: pointer;
   font: 600 var(--e-t-label)/1.2 var(--e-font); color: var(--e-ink-2); min-height: var(--e-hit); }
 .e-toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.e-toggle span { position: relative; width: 46px; height: 28px; border-radius: 999px; flex: none;
+.e-toggle > input + span { position: relative; width: 46px; height: 28px; border-radius: 999px; flex: none;
   background: var(--e-well); box-shadow: inset 0 1.5px 2px var(--e-lip-dark), inset 0 -1px 0 var(--e-lip-light);
   transition: background .15s; }
-.e-toggle span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%;
+.e-toggle > input + span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%;
   background: var(--e-ink-2); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); transition: transform .15s, background .15s; }
-.e-toggle input:checked + span { background: rgba(242, 239, 232, 0.28); }
+.e-toggle input:checked + span { background: rgba(255, 255, 255, 0.28); }
 .e-toggle input:checked + span::after { transform: translateX(18px); background: var(--e-ink); }
 
 /* ------------------------------------------------------------------ legend key
@@ -214,5 +217,45 @@
 .e-key--drain i { color: var(--e-drain); }
 
 @media (prefers-reduced-motion: reduce) {
-  .e-btn, .e-toggle span, .e-toggle span::after { transition: none; }
+  .e-btn, .e-toggle span, .e-toggle > input + span::after { transition: none; }
 }
+
+/* ================================================================== the glass skin
+ * Every control has two skins. WELL (above, the default) presses the control into
+ * the pane as a dark inset. GLASS makes the control its own piece of glass,
+ * flush-mounted in a hole in the pane: the shader draws the button's lens, the seam
+ * and the hole's bevel (src/glass/core.glsl.js), and the element itself becomes
+ * transparent so only its label is left on top.
+ *
+ * Choose per region:  <div class="e-pane" data-glass data-skin="glass"> ... </div>
+ * ember-ui.js then marks the controls inside with data-glass="button". Add
+ * data-tint="ruby" (or any palette name or #hex) to stain one.
+ *
+ * Everything here is scoped under body.lg, which the glass host sets only once its
+ * shader is running. Without it a glass-skin control is simply a well, so a phone
+ * that cannot run the shader never gets an invisible button.
+ */
+.e-glass-knob { display: none; }
+
+body.lg .e-btn[data-glass="button"]:not([data-glass-off]),
+body.lg .e-seg button[data-glass="button"]:not([data-glass-off]) {
+  background: transparent; box-shadow: none; transform: none;
+  color: var(--e-glass-ink, var(--e-ink));
+}
+/* press feedback comes from the shader (the button sinks and the seam deepens) */
+/* a stained PANE tells its own text which ink to use */
+body.lg .e-pane[data-glass][data-tint] { color: var(--e-glass-ink, var(--e-ink)); }
+body.lg .e-btn[data-glass="button"]:not([data-glass-off]):active { background: transparent; box-shadow: none; }
+
+/* toggle: the track stays a groove, the knob is glass */
+body.lg .e-toggle span:has(> .e-glass-knob)::after { opacity: 0; }
+body.lg .e-toggle .e-glass-knob {
+  display: block; position: absolute; top: 2px; left: 2px; width: 24px; height: 24px;
+  border-radius: 50%; pointer-events: none; transition: transform .15s;
+}
+body.lg .e-toggle input:checked + span .e-glass-knob { transform: translateX(18px); }
+
+/* slider: identical in both skins. The thumb stays opaque (Blair, 2026-10-09). */
+
+/* a knob the shader had no room for: draw it as the ordinary white thumb */
+body.lg .e-glass-knob[data-glass-off] { background: var(--e-ink); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }

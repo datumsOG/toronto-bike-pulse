@@ -456,6 +456,12 @@ export class PulseLayer {
 
   render(gl, matrix) {
     const hw = gl.drawingBufferWidth / 2, hh = gl.drawingBufferHeight / 2;
+    // Sizes are authored in CSS px against a device scale capped at 2 (the constructor), on a
+    // drawing buffer that used to be at the full device scale. A host may now draw at a lower
+    // scale (the home page caps it for speed), so the factor follows the REAL buffer and
+    // everything keeps the size it had on screen: on a 3x phone, 2/3 of a CSS px either way.
+    const dev = window.devicePixelRatio || 1, cw = gl.canvas.clientWidth;
+    if (cw) this.dpr = (gl.drawingBufferWidth / cw) * (Math.min(dev, 2) / dev);
     // Depth testing is OFF unless the variant draws buildings. With nothing opaque
     // in the scene there is nothing to occlude against, and additive blending with
     // no depth test is a whole bug class that never happens. With buildings, the
