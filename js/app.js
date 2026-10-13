@@ -10,7 +10,7 @@
 //
 // Blair: "make pulse have just the week option, no day/year/place, we will deal
 // with those when we have the visual finalized. So the only user inputs are
-// play/pause, speed slider, and map movement. (dev server) will just be
+// play/pause, speed slider, and map movement. dev.example.org will just be
 // a page with buttons for links to different versions."
 //
 // So this file is now an ENGINE with a variant table, mounted by four three-line
@@ -25,7 +25,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { PulseLayer, hex, oklch } from './gl.js?v=31';
-import { mountShell, PLAY, PAUSE, SPEEDS } from './shell.js?v=39';
+import { mountShell, PLAY, PAUSE, SPEEDS } from './shell.js?v=40';
 import { restyleMap, STYLE_URL } from './mapstyle.js?v=32';
 import { createGlassLayer } from '../kit/glass/host-maplibre.js?v=1.0.2';
 
@@ -115,7 +115,7 @@ const VARIANT = VARIANTS[window.PULSE_VARIANT] || VARIANTS.current;
 // variables." So they are all here, and EVERY ONE can be overridden from the URL
 // without editing a file — which matters because he is usually on a phone:
 //
-//   (dev server)
+//   https://dev.example.org
 //
 const TUNE = {
   radius:    30,    // sphere radius in screen px at the top of the scale
@@ -930,6 +930,15 @@ async function boot() {
             for (let i = 0; i < nodes.length; i++) if (test(nodes[i].lon, nodes[i].lat)) { hiddenNode[i] = 1; k++; }
             map.triggerRepaint();
             return k;
+          },
+          // The week as it stands in this frame, for a host that lights something of its own
+          // from the stations (the home page's raised name, 2026-10-13). Per station, in the
+          // order of `nodes`: `net` is the smoothed net flow, -1 to 1 (its size is the
+          // sphere's), and `sign` is the colour it is latched to, +1 filling (green), -1
+          // draining (red). `hidden` is the hideWhere() mask or null. The arrays are the live
+          // ones: read, never write.
+          field() {
+            return { nodes: state.manifest.levels[String(WEEK.level)].nodes, net: smFast, sign: smSign, hidden: hiddenNode, palette: VARIANT.palette };
           },
           // What the glass drew in its last frame: { ok, panes, buttons, dropped, error }.
           glass: () => glassLayer.readout(),

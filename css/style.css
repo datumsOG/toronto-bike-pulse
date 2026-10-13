@@ -1,9 +1,9 @@
 /* Pulse — layout on top of the standard kit (kit/ember-ui.css, pinned release 1.0.0
-   from (internal path) never edit the copy in app/kit). Controls, type and colour come from the kit; this file
+   from glass-ui-kit/releases/; never edit the copy in app/kit). Controls, type and colour come from the kit; this file
    only places things.
 
    v12, 2026-09-22. What changed from v11 and why (research and audit:
-   (internal path)):
+   internal/UI-STANDARD-2026-09-22.md):
    - Inter, tracked capitals ("P U L S E", "SPEED", "TYPICAL WEEK") and the amber
      glow on the title and slider thumb are gone. Each is a documented tell of
      generated UI, and the amber chrome competed with the only two colours here

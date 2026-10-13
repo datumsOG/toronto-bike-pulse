@@ -35,7 +35,7 @@ ZIP = sys.argv[1] if len(sys.argv) > 1 else "/tmp/bs/2025.zip"
 # Overridable so a second year can be built beside the first without touching it
 # (2026-09-22: 2026 builds into app/data/2026/, 2025 stays in app/data/).
 STATIONS = os.environ.get("PULSE_STATIONS", "/tmp/bs/stations.json")
-OUT = os.path.expanduser(os.environ.get("PULSE_OUT", "~/pulse/app/data"))
+OUT = os.path.expanduser(os.environ.get("PULSE_OUT", "data"))
 YEAR = os.environ.get("PULSE_YEAR", "2025")
 
 L1_Q = 0.008      # ~0.9 km latitude

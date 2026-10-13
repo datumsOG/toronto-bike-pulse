@@ -13,7 +13,7 @@
 // updates live playback at ½× and 60 fps would have given it. The result is one full
 // Monday-to-Sunday week, perfectly smooth, however slowly it renders.
 //
-// Needs: the Playwright Chromium in ~/.cache/ms-playwright (or CHROME=...), and an ffmpeg with
+// Needs: the Playwright Chromium in internal/ms-playwright (or CHROME=...), and an ffmpeg with
 // libx264 (FFMPEG env var, e.g. the imageio-ffmpeg static build).
 import { spawn, spawnSync } from 'node:child_process';
 import { writeFileSync, mkdtempSync, existsSync, readdirSync, rmSync } from 'node:fs';

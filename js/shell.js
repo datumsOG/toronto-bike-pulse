@@ -38,6 +38,12 @@ const tick = (e) => (e < 0 ? ['¼×', '½×'][e + 2] : `${2 ** e}×`);
 let FROM_SITE = false;
 try { const r = new URL(document.referrer); FROM_SITE = r.origin === location.origin && !r.pathname.startsWith(new URL('..', import.meta.url).pathname); } catch (e) {}
 const STANDALONE = (((window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true) && FROM_SITE) || /[?&]standalone=1\b/.test(location.search);
+// It goes back to the page that linked here, at the place it was left (Blair, 2026-10-13:
+// it used to open the home page from the top). The count of history entries when the app
+// loaded says how far back that is, whatever the app has added since.
+const HISTORY_AT_LOAD = history.length;
+function siteBackHref() { try { const r = new URL(document.referrer); if (r.origin === location.origin) return r.href; } catch (e) {} return '/'; }
+function siteBack(e) { if (HISTORY_AT_LOAD > 1) { e.preventDefault(); history.go(HISTORY_AT_LOAD - history.length - 1); } }
 const BACK = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.5 4.5L7 10l5.5 5.5"/></svg>';
 
 export function mountShell(ui, variant) {
@@ -47,7 +53,7 @@ export function mountShell(ui, variant) {
     <div id="h-big" class="e-title">&nbsp;</div>
     <div id="where" class="e-caption">Toronto Bike Share<br><span id="h-small"></span></div>
   </header>
-  ${STANDALONE ? `<a id="back" class="e-btn e-btn--icon" href="/" aria-label="Back to blairz.ca">${BACK}</a>` : ''}
+  ${STANDALONE ? `<a id="back" class="e-btn e-btn--icon" href="${siteBackHref()}" aria-label="Back">${BACK}</a>` : ''}
 
   <div id="dock" class="e-pane" data-glass data-skin="glass">
     <button id="play" class="e-btn e-btn--primary e-btn--icon" type="button" aria-label="Pause">${PAUSE}</button>
@@ -62,4 +68,6 @@ export function mountShell(ui, variant) {
       <span class="e-key e-key--fill"><i style="color:${variant.palette.in}"></i>Filling</span>
     </div>
   </div>`;
+  const back = ui.querySelector('#back');
+  if (back) back.addEventListener('click', siteBack);
 }
