@@ -29,7 +29,7 @@ import { mountShell, PLAY, PAUSE, SPEEDS } from './shell.js?v=39';
 import { restyleMap, STYLE_URL } from './mapstyle.js?v=32';
 import { createGlassLayer } from '../kit/glass/host-maplibre.js?v=1.0.2';
 
-const APP_VERSION = 'v21';
+const APP_VERSION = 'v22';
 
 // Which year's typical week. 2025 by default again (Blair, 2026-09-22 evening: "switch
 // it back to 2025 average week, I didn't realize the 2026 data wasn't current"). 2026 so
@@ -314,6 +314,8 @@ function resetSmoothing(n) {
 }
 
 let nodeOrderBearing = null, nodeOrderN = 0;
+// Embed only: stations a host page asked not to draw (window.__pulse.hideWhere), 1 per station.
+let hiddenNode = null;
 function nodeGeometry(f0, f1, frac) {
   const n = state.n, buf = state.flow, merc = state.merc;
   if (!nodeBuf || nodeBuf.length !== n * 5) nodeBuf = new Float32Array(n * 5);
@@ -405,7 +407,7 @@ function nodeGeometry(f0, f1, frac) {
     nodeBuf[o] = merc[i * 3];
     nodeBuf[o + 1] = merc[i * 3 + 1];
     nodeBuf[o + 2] = TUNE.lift * state.scale;
-    nodeBuf[o + 3] = (TUNE.minSize + (TUNE.radius - TUNE.minSize) * shape) * zscale;
+    nodeBuf[o + 3] = hiddenNode && hiddenNode[i] ? 0 : (TUNE.minSize + (TUNE.radius - TUNE.minSize) * shape) * zscale;
     nodeBuf[o + 4] = net;
   }
 
@@ -917,6 +919,17 @@ async function boot() {
             }
             this.offset = y;
             map.jumpTo({ center: new maplibregl.MercatorCoordinate(base.x + y * step.x, base.y + y * step.y).toLngLat() });
+          },
+          // Leave some stations out: test(lng, lat) -> true hides that station's sphere until
+          // the next call. For a host that has words on the map and wants them readable
+          // (the home page's tagline, 2026-10-12). Returns how many are hidden.
+          hideWhere(test) {
+            const nodes = state.manifest.levels[String(WEEK.level)].nodes;
+            hiddenNode = new Uint8Array(nodes.length);
+            let k = 0;
+            for (let i = 0; i < nodes.length; i++) if (test(nodes[i].lon, nodes[i].lat)) { hiddenNode[i] = 1; k++; }
+            map.triggerRepaint();
+            return k;
           },
           // What the glass drew in its last frame: { ok, panes, buttons, dropped, error }.
           glass: () => glassLayer.readout(),
